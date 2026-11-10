@@ -46,7 +46,10 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   logger.info(`🚀 Việc Nhà Hàng server started on port ${PORT}`);
   logger.info(`   Webhook URL: http://localhost:${PORT}/webhook/zalo`);
-  logger.info(`   Health: http://localhost:${PORT}/health`);
-});
+   logger.info(`   Health: http://localhost:${PORT}/health`);
 
+  // Khởi động cron theo dõi 7 ngày
+  const { startTrackingCron } = require('./services/tracking');
+  startTrackingCron();
+});
 module.exports = app;
