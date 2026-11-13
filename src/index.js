@@ -62,7 +62,7 @@ app.get('/oauth/zalo/callback', async (req, res) => {
   if (!verifier) return res.send('Thiếu verifier — vui lòng thử lại từ /oauth/zalo/start');
   try {
     const axios = require('axios');
-    const r = await axios.post('https://oauth.zaloapp.com/v4/oa/access_token', null, {
+        const r = await axios.post('https://oauth.zaloapp.com/v4/access_token', null, {
       params: {
         app_id: process.env.ZALO_APP_ID,
         code,
