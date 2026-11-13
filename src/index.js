@@ -59,7 +59,18 @@ app.post('/webhook/zalopay', async (req, res) => {
   const { handleZaloPayCallback } = require('./flows/shop-payment');
   return handleZaloPayCallback(req, res);
 });
-
+// Zalo OAuth start — tự tạo PKCE và redirect
+app.get('/oauth/zalo/start', (req, res) => {
+  const crypto = require('crypto');
+  const verifier = crypto.randomBytes(32).toString('base64url');
+  const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
+  // Lưu verifier vào cookie tạm
+  res.cookie('zalo_verifier', verifier, { httpOnly: true, maxAge: 300000 });
+  const url = `https://oauth.zaloapp.com/v4/permission?app_id=3316650632987873364` +
+    `&redirect_uri=https://vnh-backend-production.up.railway.app/oauth/zalo/callback` +
+    `&code_challenge=${challenge}&state=vnh123`;
+  res.redirect(url);
+});
 // Zalo OA Webhook
 app.use('/webhook/zalo', webhookRouter);
 
