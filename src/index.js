@@ -42,15 +42,11 @@ app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) =>
 </html>`);
 });
 
-// Zalo OAuth start — tự tạo PKCE rồi redirect
+// Zalo OAuth start — redirect tới trang xác thực OA
 app.get('/oauth/zalo/start', (req, res) => {
-  const crypto = require('crypto');
-  const verifier = crypto.randomBytes(32).toString('base64url');
-  const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
-  res.cookie('zalo_verifier', verifier, { httpOnly: true, maxAge: 300000 });
-  const url = `https://oauth.zaloapp.com/v4/permission?app_id=3316650632987873364` +
+  const url = `https://oauth.zaloapp.com/v4/oa/permission?app_id=3316650632987873364` +
     `&redirect_uri=https://vnh-backend-production.up.railway.app/oauth/zalo/callback` +
-    `&code_challenge=${challenge}&state=vnh123`;
+    `&state=vnh123`;
   res.redirect(url);
 });
 
@@ -58,16 +54,13 @@ app.get('/oauth/zalo/start', (req, res) => {
 app.get('/oauth/zalo/callback', async (req, res) => {
   const { code } = req.query;
   if (!code) return res.send('Thiếu code');
-  const verifier = req.cookies?.zalo_verifier;
-  if (!verifier) return res.send('Thiếu verifier — vui lòng thử lại từ /oauth/zalo/start');
   try {
     const axios = require('axios');
-        const r = await axios.post('https://oauth.zaloapp.com/v4/access_token', null, {
+    const r = await axios.post('https://oauth.zaloapp.com/v4/oa/access_token', null, {
       params: {
         app_id: process.env.ZALO_APP_ID,
         code,
         grant_type: 'authorization_code',
-        code_verifier: verifier,
       },
       headers: { secret_key: process.env.ZALO_APP_SECRET }
     });
