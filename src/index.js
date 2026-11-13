@@ -38,6 +38,19 @@ app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) =>
 <body>GCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu</body>
 </html>`);
 });
+// Zalo OAuth callback — LẤY REFRESH TOKEN (tạm thời)
+app.get('/oauth/zalo/callback', async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.send('Thiếu code');
+  try {
+    const axios = require('axios');
+    const r = await axios.post('https://oauth.zaloapp.com/v4/oa/access_token', null, {
+      params: { app_id: process.env.ZALO_APP_ID, code, grant_type: 'authorization_code' },
+      headers: { secret_key: process.env.ZALO_APP_SECRET }
+    });
+    res.send(`<pre>ACCESS_TOKEN: ${r.data.access_token}\n\nREFRESH_TOKEN: ${r.data.refresh_token}\n\nExpires in: ${r.data.expires_in}s</pre>`);
+  } catch(e) { res.send('Lỗi: ' + e.message); }
+});
 // Zalo OA Webhook
 app.use('/webhook/zalo', webhookRouter);
 
