@@ -29,7 +29,14 @@ app.get('/health', (req, res) => {
 });
 // Zalo domain verification
 app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) => {
-  res.type('html').send('GCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu');
+  res.type('html').send(`<!DOCTYPE html>
+<html>
+<head>
+<meta name="zalo-platform-site-verification" content="GCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu" />
+<title>Zalo Verify</title>
+</head>
+<body>GCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu</body>
+</html>`);
 });
 // Zalo OA Webhook
 app.use('/webhook/zalo', webhookRouter);
