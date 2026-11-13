@@ -71,7 +71,7 @@ app.get('/oauth/zalo/callback', async (req, res) => {
       },
       headers: { secret_key: process.env.ZALO_APP_SECRET }
     });
-    res.send(`<pre>ACCESS_TOKEN: ${r.data.access_token}\n\nREFRESH_TOKEN: ${r.data.refresh_token}\n\nExpires in: ${r.data.expires_in}s</pre>`);
+    res.send(`<pre>${JSON.stringify(r.data, null, 2)}</pre>`);
   } catch(e) { res.send('Lỗi: ' + e.message); }
 });
 
