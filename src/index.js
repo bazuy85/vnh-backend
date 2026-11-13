@@ -50,21 +50,14 @@ app.get('/oauth/zalo/start', (req, res) => {
   res.redirect(url);
 });
 
-// Zalo OAuth callback — LẤY REFRESH TOKEN (tạm thời)
+// Zalo OAuth callback — DEBUG
 app.get('/oauth/zalo/callback', async (req, res) => {
   const { code } = req.query;
   if (!code) return res.send('Thiếu code');
   try {
     const axios = require('axios');
-    const r = await axios.post('https://oauth.zaloapp.com/v4/oa/access_token', null, {
-      params: {
-        app_id: process.env.ZALO_APP_ID,
-        code,
-        grant_type: 'authorization_code',
-      },
-      headers: { secret_key: process.env.ZALO_APP_SECRET }
-    });
-    res.send(`<pre>${JSON.stringify(r.data, null, 2)}</pre>`);
+    // DEBUG — xem app_id đang là gì
+    res.send(`app_id = "${process.env.ZALO_APP_ID}" | code = "${code}"`);
   } catch(e) { res.send('Lỗi: ' + e.message); }
 });
 
