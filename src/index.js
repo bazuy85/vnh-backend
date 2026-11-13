@@ -27,6 +27,7 @@ app.get('/health', (req, res) => {
     version: '1.0.0'
   });
 });
+
 // Zalo domain verification
 app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) => {
   res.type('html').send(`<!DOCTYPE html>
@@ -38,6 +39,7 @@ app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) =>
 <body>GCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu</body>
 </html>`);
 });
+
 // Zalo OAuth callback — LẤY REFRESH TOKEN (tạm thời)
 app.get('/oauth/zalo/callback', async (req, res) => {
   const { code } = req.query;
@@ -51,6 +53,13 @@ app.get('/oauth/zalo/callback', async (req, res) => {
     res.send(`<pre>ACCESS_TOKEN: ${r.data.access_token}\n\nREFRESH_TOKEN: ${r.data.refresh_token}\n\nExpires in: ${r.data.expires_in}s</pre>`);
   } catch(e) { res.send('Lỗi: ' + e.message); }
 });
+
+// ZaloPay callback webhook
+app.post('/webhook/zalopay', async (req, res) => {
+  const { handleZaloPayCallback } = require('./flows/shop-payment');
+  return handleZaloPayCallback(req, res);
+});
+
 // Zalo OA Webhook
 app.use('/webhook/zalo', webhookRouter);
 
@@ -69,10 +78,11 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   logger.info(`🚀 Việc Nhà Hàng server started on port ${PORT}`);
   logger.info(`   Webhook URL: http://localhost:${PORT}/webhook/zalo`);
-   logger.info(`   Health: http://localhost:${PORT}/health`);
+  logger.info(`   Health: http://localhost:${PORT}/health`);
 
   // Khởi động cron theo dõi 7 ngày
   const { startTrackingCron } = require('./services/tracking');
   startTrackingCron();
 });
+
 module.exports = app;
