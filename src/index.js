@@ -27,7 +27,10 @@ app.get('/health', (req, res) => {
     version: '1.0.0'
   });
 });
-
+// Zalo domain verification
+app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) => {
+  res.type('html').send('GCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu');
+});
 // Zalo OA Webhook
 app.use('/webhook/zalo', webhookRouter);
 
