@@ -58,7 +58,7 @@ app.get('/oauth/zalo/callback', async (req, res) => {
     const axios = require('axios');
     const r = await axios.post('https://oauth.zaloapp.com/v4/oa/access_token', null, {
       params: {
-        app_id: process.env.ZALO_APP_ID,,
+        app_id: process.env.ZALO_APP_ID,
         code,
         grant_type: 'authorization_code',
       },
