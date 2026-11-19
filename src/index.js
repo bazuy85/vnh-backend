@@ -97,6 +97,8 @@ app.listen(PORT, () => {
   // Khởi động cron theo dõi 7 ngày
   const { startTrackingCron } = require('./services/tracking');
   startTrackingCron();
+   const { startKeepAliveCron } = require('./services/tracking');
+  startKeepAliveCron();
 });
 
 module.exports = app;
