@@ -185,5 +185,19 @@ function startTrackingCron() {
   }, ONE_HOUR);
   logger.info('Tracking cron started (every 1 hour)');
 }
+async function pingSupabase() {
+  try {
+    await supabase.from('appointments').select('id').limit(1);
+    logger.info('Supabase keep-alive ping OK');
+  } catch(e) {
+    logger.info('Supabase keep-alive ping sent');
+  }
+}
 
-module.exports = { createAppointment, runTrackingCron, startTrackingCron, handleTrackingResponse };
+function startKeepAliveCron() {
+  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+  pingSupabase();
+  setInterval(pingSupabase, THREE_DAYS_MS);
+  logger.info('Supabase keep-alive cron started (every 3 days)');
+}
+module.exports = { createAppointment, runTrackingCron, startTrackingCron, handleTrackingResponse, pingSupabase, startKeepAliveCron };
