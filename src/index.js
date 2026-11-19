@@ -44,7 +44,7 @@ app.get('/zalo_verifierGCJX3wQrQ3jvf-mclDTRF4l1oMEdjn8wCZSu.html', (req, res) =>
 
 // Zalo OAuth start — redirect tới trang xác thực OA
 app.get('/oauth/zalo/start', (req, res) => {
-  const url = `https://oauth.zaloapp.com/v4/oa/permission?app_id=3316650632987873364` +
+  const url = `https://oauth.zaloapp.com/v4/oa/permission?app_id=${process.env.ZALO_APP_ID}` +
     `&redirect_uri=https://vnh-backend-production.up.railway.app/oauth/zalo/callback` +
     `&state=vnh123`;
   res.redirect(url);
@@ -58,11 +58,11 @@ app.get('/oauth/zalo/callback', async (req, res) => {
     const axios = require('axios');
     const r = await axios.post('https://oauth.zaloapp.com/v4/oa/access_token', null, {
       params: {
-        app_id: '3316650632987873364',
+        app_id: process.env.ZALO_APP_ID,,
         code,
         grant_type: 'authorization_code',
       },
-      headers: { secret_key: 'Y1o3I73CbDJEzUB1v22p' }
+     headers: { secret_key: process.env.ZALO_APP_SECRET }
     });
     res.send(`<pre>${JSON.stringify(r.data, null, 2)}</pre>`);
   } catch(e) { res.send('Lỗi: ' + e.message); }
