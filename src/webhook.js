@@ -59,27 +59,17 @@ router.post('/', async (req, res) => {
       return;
     }
 
-    // --- User gửi tin nhắn văn bản ---
+    // --- User gửi tin nhắn văn bản HOẶC bấm nút ---
+    // Zalo gửi cả 2 loại qua event 'user_send_text'
+    // Khi bấm nút: message.text = payload (vd: 'role_phuc_vu')
     if (eventName === 'user_send_text') {
       await handleIncomingMessage(event);
       return;
     }
 
-    // --- User bấm nút (button payload) ---
-    // Zalo gửi event 'oa_chatbot' khi user bấm nút (msg_type = 'query_show')
-    if (eventName === 'oa_chatbot') {
-      if (event.message?.msg_type === 'query_show') {
-        await handleIncomingMessage({
-          ...event,
-          message: { text: event.message.payload }
-        });
-      }
-      return;
-    }
-
-    // --- User gửi hình ảnh (bỏ qua) ---
-    if (eventName === 'user_send_image') {
-      logger.debug('Image received — ignored');
+    // --- Bỏ qua hình ảnh, sticker, file ---
+    if (['user_send_image', 'user_send_sticker', 'user_send_file', 'user_send_gif'].includes(eventName)) {
+      logger.debug('Non-text event ignored', { eventName });
       return;
     }
 
