@@ -66,14 +66,20 @@ router.post('/', async (req, res) => {
     }
 
     // --- User bấm nút (button payload) ---
-    if (eventName === 'user_send_image' || eventName === 'oa_chatbot') {
-      // Nếu là payload từ nút
+    // Zalo gửi event 'oa_chatbot' khi user bấm nút (msg_type = 'query_show')
+    if (eventName === 'oa_chatbot') {
       if (event.message?.msg_type === 'query_show') {
         await handleIncomingMessage({
           ...event,
           message: { text: event.message.payload }
         });
       }
+      return;
+    }
+
+    // --- User gửi hình ảnh (bỏ qua) ---
+    if (eventName === 'user_send_image') {
+      logger.debug('Image received — ignored');
       return;
     }
 
