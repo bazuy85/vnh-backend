@@ -23,12 +23,25 @@ async function getAccessToken() {
       },
       headers: { secret_key: process.env.ZALO_APP_SECRET }
     });
+
+    // Zalo trả HTTP 200 ngay cả khi lỗi — PHẢI kiểm tra body
+    if (res.data.error && res.data.error !== 0) {
+      throw new Error(`Zalo token error ${res.data.error}: ${res.data.message}`);
+    }
+    if (!res.data.access_token) {
+      logger.error('Zalo token refresh: no access_token in response', { body: JSON.stringify(res.data) });
+      throw new Error('Zalo did not return access_token');
+    }
+
     accessToken = res.data.access_token;
-    tokenExpiry = Date.now() + (res.data.expires_in - 60) * 1000; // trừ 60s buffer
-    logger.info('Zalo access token refreshed');
+    const expiresIn = parseInt(res.data.expires_in, 10) || 3600;
+    tokenExpiry = Date.now() + (expiresIn - 60) * 1000; // trừ 60s buffer
+    logger.info('Zalo access token refreshed', { expiresIn, tokenPreview: accessToken.substring(0, 12) + '...' });
     return accessToken;
   } catch (err) {
     logger.error('Failed to get Zalo access token', { error: err.message });
+    accessToken = null; // reset cache khi lỗi
+    tokenExpiry = 0;
     throw err;
   }
 }
@@ -37,13 +50,18 @@ async function getAccessToken() {
 async function sendText(zaloUserId, text) {
   try {
     const token = await getAccessToken();
-    await axios.post(`${ZALO_API_BASE}/message/cs`, {
+    const res = await axios.post(`${ZALO_API_BASE}/message/cs`, {
       recipient: { user_id: zaloUserId },
       message: { text }
     }, {
       headers: { access_token: token }
     });
-    logger.debug('Text sent', { zaloUserId, preview: text.substring(0, 50) });
+
+    // Zalo trả HTTP 200 ngay cả khi lỗi — PHẢI kiểm tra body
+    if (res.data.error !== 0) {
+      throw new Error(`Zalo API error ${res.data.error}: ${res.data.message}`);
+    }
+    logger.info('Text sent OK', { zaloUserId, msgId: res.data.data?.message_id, preview: text.substring(0, 50) });
   } catch (err) {
     logger.error('Failed to send text message', { zaloUserId, error: err.message });
     throw err;
@@ -53,6 +71,7 @@ async function sendText(zaloUserId, text) {
 // Gửi tin nhắn với nút bấm (button template)
 async function sendButtons(zaloUserId, text, buttons) {
   // buttons: [{ title: 'Phục vụ', payload: 'role_phuc_vu' }, ...]
+  // Thử dùng list template trước; nếu Zalo báo lỗi → fallback về text
   try {
     const token = await getAccessToken();
     const elements = buttons.map(btn => ({
@@ -67,7 +86,7 @@ async function sendButtons(zaloUserId, text, buttons) {
       }]
     }));
 
-    await axios.post(`${ZALO_API_BASE}/message/cs`, {
+    const res = await axios.post(`${ZALO_API_BASE}/message/cs`, {
       recipient: { user_id: zaloUserId },
       message: {
         attachment: {
@@ -81,11 +100,17 @@ async function sendButtons(zaloUserId, text, buttons) {
     }, {
       headers: { access_token: token }
     });
-    logger.debug('Buttons sent', { zaloUserId, buttonCount: buttons.length });
+
+    // Zalo trả HTTP 200 ngay cả khi lỗi — PHẢI kiểm tra body
+    if (res.data.error !== 0) {
+      throw new Error(`Zalo template error ${res.data.error}: ${res.data.message}`);
+    }
+    logger.info('Buttons sent OK', { zaloUserId, buttonCount: buttons.length, msgId: res.data.data?.message_id });
   } catch (err) {
-    // Fallback: gửi text nếu button lỗi
-    logger.warn('Button send failed, falling back to text', { error: err.message });
-    const fallback = text + '\n\n' + buttons.map((b, i) => `${i + 1}. ${b.title}`).join('\n');
+    // Fallback: gửi text với danh sách đánh số nếu template lỗi
+    logger.warn('Button template failed, falling back to text', { zaloUserId, error: err.message });
+    const fallback = text + '\n\n' + buttons.map((b, i) => `${i + 1}. ${b.title}`).join('\n') +
+      '\n\n(Nhắn số hoặc tên để chọn)';
     await sendText(zaloUserId, fallback);
   }
 }
